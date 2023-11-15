@@ -15,7 +15,7 @@ TASK_LIST_FILENAME = "options.csv"  # Only relevant if TASK_SOURCE == "file"
 # TASK_SOURCE = "file"
 TASK_SOURCE = "jira"
 TIME_UPDATE_INTERVAL = 1  # Interval to update the timer on the system tray, in seconds
-AUTO_RELOAD_INTERVAL = 60  # Interval to reload menu items, seconds
+AUTO_RELOAD_INTERVAL = 3600  # Interval to reload menu items, seconds
 DEBUG_MODE = False
 # rumps.debug_mode(True)
 
@@ -29,7 +29,7 @@ class Task(rumps.MenuItem):
 
 class WorkLoggerApp(rumps.App):
     def __init__(self):
-        super(WorkLoggerApp, self).__init__("WorkLogger v3")
+        super(WorkLoggerApp, self).__init__("WorkLogger")
         self.timer = None
         self.selected_task = Task(None)  # placeholder to keep track of the selected task (between reloads)        
         self.default_menu_items = [
@@ -101,15 +101,17 @@ class WorkLoggerApp(rumps.App):
             time.sleep(TIME_UPDATE_INTERVAL)
 
     def stop_timer(self):
+        # breakpoint()
         if self.timer:
-            self.title = f"WorkLogger - Timer Stopped"
+            # self.title = f"{self.name} - Timer Stopped"
             if self.selected_task.task_id:
                 end_time = time.strftime("%Y-%m-%d %H:%M:%S")
                 duration = self.get_elapsed_time()
                 print(f"TIMER STOP: {self.selected_task.task_id} - DURATION: {duration}")
                 self.log_time(self.selected_task, self.start_time, end_time, duration)
-            self.timer = None
             self.start_time = None
+            self.timer = None
+            self.title = None
 
     def get_elapsed_time(self):
         if not self.timer:
@@ -190,10 +192,10 @@ class WorkLoggerApp(rumps.App):
             task.state = False
             
     def reload_handler(self, _=None):
-        if TASK_SOURCE == "file":
-            tasks = self.load_options_from_file()
-        elif TASK_SOURCE == "jira":
-            tasks = self.load_options_from_jira()
+        # if TASK_SOURCE == "jira":
+        tasks = self.load_options_from_jira()
+        # elif TASK_SOURCE == "file":
+        tasks.extend(self.load_options_from_file())
 
         # Set handler function (callback)
         # TODO: Maybe this could just be initialized together with the Task object, as it's always the same

@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime
 from jira import JIRA
 from jira.exceptions import JIRAError
@@ -68,14 +69,27 @@ def _convert_duration(duration):
 
     return formatted_duration.strip()
 
-def log_work_to_issue(issue, duration):
-    comment = "Automatically logged"
-    timeSpent = _convert_duration(duration)
-    try:
-        jira.add_worklog(issue=issue, timeSpent=timeSpent, comment=comment)
-        print(f"Worklog added for issue {issue} - duration: {duration}")
-    except JIRAError as e:
-        # probably the time is less than 1 minute. show notification saying it wasn't updated because of that        
-        print(f"JIRA ERROR: Issue: {issue} | Duration = {duration} -> less than 1 minute. Not logging.")
-        if not timeSpent:  # if it's less than one minute, we'll get an empty string ""
-            raise ValueError("JIRA ERROR: Not Logged. Time < 1 minute") from e
+def log_work_to_issue(issue_key, duration):
+    if validate_jira_issue_key(issue_key):
+        comment = "Automatically logged"
+        timeSpent = _convert_duration(duration)
+        try:
+            jira.add_worklog(issue=issue_key, timeSpent=timeSpent, comment=comment)
+            print(f"Worklog added for issue {issue_key} - duration: {duration}")
+        except JIRAError as e:
+            # probably the time is less than 1 minute. show notification saying it wasn't updated because of that        
+            msg = f"JIRA ERROR: Issue: {issue_key} | Status Code: {e.status_code} - {e.text}"
+            if not timeSpent:  # if it's less than one minute, we'll get an empty string ""
+                raise ValueError(msg) from e
+        
+def validate_jira_issue_key(issue_key):
+    """Check if this issue_key is a valid FDSE issue
+    - only regex validation for now
+    - not checking if it actually exists in JIRA. It will fail anyway if it's not found
+
+    Args:
+        issue_key (bool): JIRA issue key
+    """
+    if re.search("^FDSE-\d+$", issue_key):
+        return True
+    return False

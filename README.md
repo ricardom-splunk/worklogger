@@ -11,6 +11,7 @@ The following environment variables must be exported:
 ```
 
 A common strategy is to create a .env file where the variables and corresponding values are defined.
+
 Then:
 ```source .env```
 
