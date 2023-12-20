@@ -12,13 +12,6 @@ api_token = os.environ.get("JIRA_API_TOKEN")
 
 jira = JIRA(server=jira_url, basic_auth=(user_email, api_token))
 
-
-    
-# # Example: Retrieve an issue
-# issue_key = 'FDSE-1919'
-# issue = jira.issue(issue_key)
-# print(f"Summary: {issue.fields.summary}")
-
 def get_my_open_issues():
     """Get Unresolved JIRA issues assigned to current user
 
@@ -76,11 +69,14 @@ def log_work_to_issue(issue_key, duration):
         try:
             jira.add_worklog(issue=issue_key, timeSpent=timeSpent, comment=comment)
             print(f"Worklog added for issue {issue_key} - duration: {duration}")
+            return f"Worklog added for issue {issue_key} - duration: {duration}"
         except JIRAError as e:
             # probably the time is less than 1 minute. show notification saying it wasn't updated because of that        
             msg = f"JIRA ERROR: Issue: {issue_key} | Status Code: {e.status_code} - {e.text}"
             if not timeSpent:  # if it's less than one minute, we'll get an empty string ""
                 raise ValueError(msg) from e
+    else:
+        print("Not logged to JIRA. Invalid issue key.")
         
 def validate_jira_issue_key(issue_key):
     """Check if this issue_key is a valid FDSE issue
