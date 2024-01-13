@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import rumps
 import threading
 import time
@@ -6,6 +7,9 @@ import os
 import sys
 import jira_helper
 
+from pprint import pprint
+
+import utils
 
 # LOG_TIME_DEST = "db"
 LOG_TIME_DEST = "jira"
@@ -25,7 +29,7 @@ class Task(rumps.MenuItem):
         self.task_id = task_id
         self.url = url
         self.summary = summary
-
+        
 
 class WorkLoggerApp(rumps.App):
     def __init__(self):
@@ -89,8 +93,17 @@ class WorkLoggerApp(rumps.App):
             self.db.commit()
         if LOG_TIME_DEST == "jira":
             try:
-                res = jira_helper.log_work_to_issue(task.task_id, duration)
-                rumps.notification(title="WorkLogger", subtitle="Successful", message=res)
+                if utils._convert_duration(duration):  # More than 1 minute
+                    input_box = rumps.Window(
+                        message=f"Stopping timer for task {task.task_id}.\nAdd an optional comment...",
+                        title=task.task_id,
+                        # default_text="",
+                        # cancel="Cancel",
+                        # dimensions=[400, 600]
+                        ok="OK"
+                    )
+                    res = input_box.run()
+                    jira_helper.log_work_to_issue(task.task_id, duration, comment=res.text)
             except Exception as e:
                 rumps.notification(title="ERROR", subtitle="Couldn't log work", message=str(e))
                 print(e)
@@ -100,7 +113,7 @@ class WorkLoggerApp(rumps.App):
         while self.timer:
             self.title = f"Tracking ({self.selected_task.task_id}) - {self.get_elapsed_time()}"
             time.sleep(TIME_UPDATE_INTERVAL)
-
+    
     def stop_timer(self):
         # breakpoint()
         if self.timer:
@@ -110,6 +123,7 @@ class WorkLoggerApp(rumps.App):
                 duration = self.get_elapsed_time()
                 print(f"TIMER STOP: {self.selected_task.task_id} - DURATION: {duration}")
                 self.log_time(self.selected_task, self.start_time, end_time, duration)
+
             self.start_time = None
             self.timer = None
             self.title = None
@@ -172,6 +186,7 @@ class WorkLoggerApp(rumps.App):
         return _tasks
             
     def option_handler(self, task):
+        # If no task selected OR selected a different task thant he one we clicked on...
         if self.selected_task.task_id != task.task_id:
             self.stop_timer()  # Stop the timer if it's running
             try:
@@ -187,17 +202,18 @@ class WorkLoggerApp(rumps.App):
             self.timer = threading.Thread(target=self.start_timer)
             self.timer.start()
             task.state = True  # set the checkmark, task is "running"
-        else:
+        else:  # If the task we clicked on was already selected (ON)...
             self.stop_timer()  # Stop the timer if the same option is clicked
             self.selected_task = Task(None)
             task.state = False
             
     def reload_handler(self, _=None):
         # if TASK_SOURCE == "jira":
-        tasks = self.load_options_from_jira()
+        tasks = []  # TODO: delete, only for debug
+        # tasks = self.load_options_from_jira()
         # elif TASK_SOURCE == "file":
         tasks.extend(self.load_options_from_file())
-
+        
         # Set handler function (callback)
         # TODO: Maybe this could just be initialized together with the Task object, as it's always the same
         # For now leaving it like this, for flexibility
@@ -223,9 +239,6 @@ class WorkLoggerApp(rumps.App):
             self.db.close()
         rumps.quit_application()
 
-    def breakpoint(self, _):      
-        from pprint import pprint
-        import ipdb; ipdb.set_trace()
 
 if __name__ == "__main__":
     app = WorkLoggerApp()
