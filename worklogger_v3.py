@@ -89,9 +89,10 @@ class WorkLoggerApp(rumps.App):
             self.db.commit()
         if LOG_TIME_DEST == "jira":
             try:
-                jira_helper.log_work_to_issue(task.task_id, duration)
+                res = jira_helper.log_work_to_issue(task.task_id, duration)
+                rumps.notification(title="WorkLogger", subtitle="Successful", message=res)
             except Exception as e:
-                # rumps.notification(title="ERROR", subtitle="Couldn't log work", message=str(e))
+                rumps.notification(title="ERROR", subtitle="Couldn't log work", message=str(e))
                 print(e)
 
     def start_timer(self):
