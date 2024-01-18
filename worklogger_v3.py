@@ -11,13 +11,16 @@ from pprint import pprint
 
 import utils
 
-# LOG_TIME_DEST = "db"
-LOG_TIME_DEST = "jira"
+LOG_TIME_DEST = {
+    "jira": True,
+    "db": False
+}
 
 # Where to load tasks from:
-TASK_LIST_FILENAME = "options.csv"  # Only relevant if TASK_SOURCE == "file"
-# TASK_SOURCE = "file"
-TASK_SOURCE = "jira"
+TASK_LIST_FILENAME = "options.csv"  # Only relevant if "file" in TASK_SOURCES
+# TASK_SOURCES = ["jira", "file"]  # <- Allowed options
+TASK_SOURCES = ["jira", "file"]
+
 TIME_UPDATE_INTERVAL = 1  # Interval to update the timer on the system tray, in seconds
 AUTO_RELOAD_INTERVAL = 3600  # Interval to reload menu items, seconds
 DEBUG_MODE = False
@@ -87,13 +90,14 @@ class WorkLoggerApp(rumps.App):
 
     def log_time(self, task, start_timestamp, end_timestamp, duration):
         print(f"Logging {duration} to task {task.task_id}")
-        if LOG_TIME_DEST == "db":
+        if LOG_TIME_DEST['db']:
             self.cursor.execute("INSERT INTO work_logs (task_id, start_timestamp, end_timestamp, duration) VALUES (?, ?, ?, ?)",
                                 (task.task_id, start_timestamp, end_timestamp, duration))
             self.db.commit()
-        if LOG_TIME_DEST == "jira":
+        if LOG_TIME_DEST["jira"]:
             try:
-                if utils._convert_duration(duration):  # More than 1 minute
+                # if utils._convert_duration(duration):  # More than 1 minute
+                if True:
                     input_box = rumps.Window(
                         message=f"Stopping timer for task {task.task_id}.\nAdd an optional comment...",
                         title=task.task_id,
@@ -153,14 +157,17 @@ class WorkLoggerApp(rumps.App):
         try:
             with open(TASK_LIST_FILENAME, "r") as file:
                 for line in file:
-                    task_id, url, summary = line.strip().split(",")
-                    task = Task(
-                        title=f"{task_id} - {summary[:30]}",
-                        task_id=task_id,
-                        url=url,
-                        summary=summary
-                    )
-                    _tasks.append(task)
+                    if not line.startswith("#"):
+                        task_id, url, summary = line.strip().split(",")
+                        task = Task(
+                            title=f"{task_id} - {summary[:30]}",
+                            task_id=task_id,
+                            url=url,
+                            summary=summary
+                        )
+                        _tasks.append(task)
+                    else:
+                        print(f"{line} not added. It's a comment!")
         except ValueError:
             pass
         except FileNotFoundError:
@@ -208,11 +215,10 @@ class WorkLoggerApp(rumps.App):
             task.state = False
             
     def reload_handler(self, _=None):
-        # if TASK_SOURCE == "jira":
-        tasks = []  # TODO: delete, only for debug
-        # tasks = self.load_options_from_jira()
-        # elif TASK_SOURCE == "file":
-        tasks.extend(self.load_options_from_file())
+        if "jira" in TASK_SOURCES:
+            tasks = self.load_options_from_jira()
+        if "file" in TASK_SOURCES:
+            tasks.extend(self.load_options_from_file())
         
         # Set handler function (callback)
         # TODO: Maybe this could just be initialized together with the Task object, as it's always the same
