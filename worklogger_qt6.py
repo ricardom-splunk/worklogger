@@ -128,8 +128,8 @@ class TrayIconApp(QMainWindow):
         context_menu = self.tray_icon.contextMenu()
         context_menu.clear()
         
-        # for task_source in const.TASK_SOURCES:
-        for task_source in ["file"]:
+        for task_source in const.TASK_SOURCES:
+        # for task_source in ["file"]:
             tasks = utils.load_options(task_source)
             sorted_tasks = sorted(tasks, key=lambda t: t.issue_key)
             for task in sorted_tasks:
@@ -192,11 +192,13 @@ class TrayIconApp(QMainWindow):
                     print(f"Entered Text: {comment}")
                     print(f"Tags: {tags}")
                     jira_helper.log_work_to_issue(jira_issue_key, duration, comment=comment, tags=", ".join(tags))
+                    # TODO: Notification on success
                 else:
                     # User clicked Cancel or closed the dialog
                     print("Dialog was canceled.")
 
         except Exception as e:
+            # TODO: Notification on error
             # rumps.notification(title="ERROR", subtitle="Couldn't log work", message=str(e))
             print(e)
 
