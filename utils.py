@@ -1,4 +1,7 @@
-def _convert_duration(duration):
+import constants as const
+import jira_helper
+
+def convert_duration(duration):
     """Convert the duration string to a format that JIRA likes
 
     Args:
@@ -29,3 +32,60 @@ def _convert_duration(duration):
         formatted_duration += f"{minutes}m"
 
     return formatted_duration.strip()
+
+class Task:
+    def __init__(self, title=None, issue_key=None, url=None, summary=None):
+        self.title = title
+        self.issue_key = issue_key
+        self.url = url
+        self.summary = summary
+
+def load_options(sources=[]):
+    """Load options from `sources`
+
+    Each line in the file corresponds to one task.
+    The comma-separated fields should be as follows:
+    issue_key, url, summary
+    
+    Returns:
+        list: list of Task objects
+    """
+    _tasks = []
+    if "file" in sources:
+        print("Loading tasks from file...")
+        try:
+            with open(const.TASK_LIST_FILENAME, "r") as file:
+                for line in file:
+                    if not line.startswith("#"):
+                        issue_key, url, summary = line.strip().split(",")
+                        task = Task(
+                            title=f"{issue_key} - {summary[:30]}",
+                            issue_key=issue_key,
+                            url=url,
+                            summary=summary
+                        )
+                        _tasks.append(task)
+                    else:
+                        print(f"{line} not added. It's a comment!")
+            print(f"Tasks successfully loaded from file {const.TASK_LIST_FILENAME}")
+        except ValueError:
+            pass
+        except FileNotFoundError:
+            print("Options file not found.")
+    
+    # TODO: Add a horizontal divider between file and JIRA tasks
+    
+    if "jira" in sources:
+        print("Loading tasks from JIRA...")
+        _items = jira_helper.get_my_open_issues()  # Should return a list of dicts    
+        for item in _items:
+            task = Task(
+                title=f"{item['issue_key']} - {item['summary'][:30]}",
+                issue_key=item['issue_key'],
+                url=item['url'],
+                summary=item['summary']
+            )
+            _tasks.append(task)
+        print("Tasks successfully loaded from file JIRA")
+        
+    return _tasks

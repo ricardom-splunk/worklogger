@@ -26,7 +26,7 @@ def get_my_open_issues():
     # Print details of each assigned issue
     for issue in res:
         issue_link = f"{jira_url}/browse/{issue.key}"
-        issue_data = {"task_id": issue.key, "url": issue_link, "summary": issue.fields.summary}
+        issue_data = {"issue_key": issue.key, "url": issue_link, "summary": issue.fields.summary}
         my_open_issues.append(issue_data)
         
     return my_open_issues
@@ -36,7 +36,7 @@ def log_work_to_issue(issue_key, duration, comment="", tags=""):
         # JIRA WorkLog Comment format:
         comment_auto = f"{{panel:bgColor=#deebff}}\nAutomatically Logged\n{{panel}}\n{comment}\n\n----\n{{color:#97a0af}}Tags{{color}}: {tags}\n"
         # comment_auto = f"[Automatically logged]\n\n{comment}"
-        timeSpent = utils._convert_duration(duration)
+        timeSpent = utils.convert_duration(duration)
         try:
             res = jira.add_worklog(issue=issue_key, timeSpent=timeSpent, comment=comment_auto)
             print(f"Worklog added for issue {issue_key} - duration: {duration}")
