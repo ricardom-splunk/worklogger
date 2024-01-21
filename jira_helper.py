@@ -1,8 +1,9 @@
 import os
 import re
-from datetime import datetime
 from jira import JIRA
 from jira.exceptions import JIRAError
+
+import utils
 
 # Set up your Jira Cloud connection
 jira_url = os.environ.get("JIRA_API_URL")
@@ -25,51 +26,21 @@ def get_my_open_issues():
     # Print details of each assigned issue
     for issue in res:
         issue_link = f"{jira_url}/browse/{issue.key}"
-        issue_data = {"task_id": issue.key, "url": issue_link, "summary": issue.fields.summary}
+        issue_data = {"issue_key": issue.key, "url": issue_link, "summary": issue.fields.summary}
         my_open_issues.append(issue_data)
         
     return my_open_issues
 
-def _convert_duration(duration):
-    """Convert the duration string to a format that JIRA likes
-
-    Args:
-        duration (str): Format: "HH:MM"
-
-    Returns:
-        str: Example: "1w 3d 7h 24m"
-    """
-    # Split the duration string into hours, minutes, and seconds
-    # Expects input as "hh:mm:ss"
-    hours, minutes = map(int, duration.split(':'))
-
-    # Convert hours to days, taking into account 1d equals 8h
-    days, hours = divmod(hours, 8)
-
-    # Convert days to weeks, taking into account 1w equals 5d
-    weeks, days = divmod(days, 5)
-
-    # Construct the formatted duration string
-    formatted_duration = ""
-    if weeks:
-        formatted_duration += f"{weeks}w "
-    if days:
-        formatted_duration += f"{days}d "
-    if hours:
-        formatted_duration += f"{hours}h "
-    if minutes:
-        formatted_duration += f"{minutes}m"
-
-    return formatted_duration.strip()
-
-def log_work_to_issue(issue_key, duration):
+def log_work_to_issue(issue_key, duration, comment="", tags=""):
     if validate_jira_issue_key(issue_key):
-        comment = "Automatically logged"
-        timeSpent = _convert_duration(duration)
+        # JIRA WorkLog Comment format:
+        comment_auto = f"{{panel:bgColor=#deebff}}\nAutomatically Logged\n{{panel}}\n{comment}\n\n----\n{{color:#97a0af}}Tags{{color}}: {tags}\n"
+        # comment_auto = f"[Automatically logged]\n\n{comment}"
+        timeSpent = utils.convert_duration(duration)
         try:
-            jira.add_worklog(issue=issue_key, timeSpent=timeSpent, comment=comment)
+            res = jira.add_worklog(issue=issue_key, timeSpent=timeSpent, comment=comment_auto)
             print(f"Worklog added for issue {issue_key} - duration: {duration}")
-            return f"Worklog added for issue {issue_key} - duration: {duration}"
+            # return f"Worklog added for issue {issue_key} - duration: {duration}"
         except JIRAError as e:
             # probably the time is less than 1 minute. show notification saying it wasn't updated because of that        
             msg = f"JIRA ERROR: Issue: {issue_key} | Status Code: {e.status_code} - {e.text}"
