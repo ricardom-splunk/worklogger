@@ -26,5 +26,9 @@ TAGS = [
     "investigation",
     "triage",
     "environment",
-    "other"
+    "other",
+    "bugfix",
+    "testing",
+    "requirements",
+    "delivery"
 ]

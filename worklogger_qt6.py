@@ -75,11 +75,16 @@ class CommentDialog(QDialog):
         tags = []
         for row in range(self.grid.rowCount()):
             for col in range(self.grid.columnCount()):
-                item = self.grid.itemAtPosition(row, col)
-                cb = item.widget()
-                if cb.isChecked():
-                    tags.append(cb.text())
-
+                try:
+                    item = self.grid.itemAtPosition(row, col)
+                    cb = item.widget()
+                    if cb.isChecked():
+                        tags.append(cb.text())
+                except Exception:
+                    # Could have a 'NoneType' object has no attribute 'widget' exception
+                    # if we have odd number of tags, which will leave one of the grid positions empty
+                    # let's ignore it for now
+                    pass
         return tags
         
 class CustomQAction(QAction):
