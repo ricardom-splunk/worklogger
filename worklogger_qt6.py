@@ -132,12 +132,12 @@ class TrayIconApp(QMainWindow):
         # Create actions
         reload_action = QAction("Reload", self)
         reload_action.triggered.connect(self.reload_action)
+        self.context_menu.addAction(reload_action)
 
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(QApplication.instance().quit)
-
-        self.context_menu.addAction(reload_action)
         self.context_menu.addAction(quit_action)
+
 
     def reload_action(self):
         # Reload action triggered
@@ -195,30 +195,26 @@ class TrayIconApp(QMainWindow):
 
     def log_time(self, jira_issue_key, duration):
         try:
-            if True:
-            # if utils.convert_duration(duration):  # More than 1 minute
-                print(f"Logging {duration} to task {jira_issue_key}")
-                
-                dialog = CommentDialog(self, jira_issue_key)
-                dialog.duration_edit.setTime(QTime.fromString(duration, "hh:mm"))
-                result = dialog.exec()
-                # Check the result
-                if result == 1:
-                    # User clicked OK
-                    comment = dialog.get_text()
-                    tags = dialog.get_tags()
-                    duration = dialog.duration_edit.time().toString("hh:mm")
-                    print(f"Entered Text: {comment}")
-                    print(f"Tags: {tags}")
-                    jira_helper.log_work_to_issue(jira_issue_key, duration, comment=comment, tags=", ".join(tags))
-                    # TODO: Notification on success
-                else:
-                    # User clicked Cancel or closed the dialog
-                    print("Dialog was canceled.")
-
+            print(f"Logging {duration} to task {jira_issue_key}")
+            
+            dialog = CommentDialog(self, jira_issue_key)
+            dialog.duration_edit.setTime(QTime.fromString(duration, "hh:mm"))
+            result = dialog.exec()
+            # Check the result
+            if result == 1:
+                # User clicked OK
+                comment = dialog.get_text()
+                tags = dialog.get_tags()
+                duration = dialog.duration_edit.time().toString("hh:mm")
+                print(f"Entered Text: {comment}")
+                print(f"Tags: {tags}")
+                jira_helper.log_work_to_issue(jira_issue_key, duration, comment=comment, tags=", ".join(tags))
+                # TODO: Notification on success
+            else:
+                # User clicked Cancel or closed the dialog
+                print("Dialog was canceled.")
         except Exception as e:
             # TODO: Notification on error
-            # rumps.notification(title="ERROR", subtitle="Couldn't log work", message=str(e))
             print(e)
 
     def start_timer(self, action):
