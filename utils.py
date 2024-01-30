@@ -50,8 +50,10 @@ def load_options(sources=[]):
     Returns:
         list: list of Task objects
     """
-    _tasks = []
+    _tasks = {}
     if "file" in sources:
+        source_name = "Local"
+        _tasks[source_name] = []
         print("Loading tasks from file...")
         try:
             with open(const.TASK_LIST_FILENAME, "r") as file:
@@ -64,9 +66,9 @@ def load_options(sources=[]):
                             url=url,
                             summary=summary
                         )
-                        _tasks.append(task)
+                        _tasks[source_name].append(task)
                     else:
-                        print(f"{line} not added. It's a comment!")
+                        print(f"{line} not added. It's a # comment!")
             print(f"Tasks successfully loaded from file {const.TASK_LIST_FILENAME}")
         except ValueError:
             pass
@@ -77,15 +79,17 @@ def load_options(sources=[]):
     
     if "jira" in sources:
         print("Loading tasks from JIRA...")
-        _items = jira_helper.get_my_open_issues()  # Should return a list of dicts    
-        for item in _items:
-            task = Task(
-                title=f"{item['issue_key']} - {item['summary'][:30]}",
-                issue_key=item['issue_key'],
-                url=item['url'],
-                summary=item['summary']
-            )
-            _tasks.append(task)
+        _items = jira_helper.get_my_open_issues()  # Should return a list of dicts
+        for key in _items.keys():
+            _tasks[key] = []
+            for item in _items[key]:
+                task = Task(
+                    title=f"{item['issue_key']} - {item['summary'][:30]}",
+                    issue_key=item['issue_key'],
+                    url=item['url'],
+                    summary=item['summary']
+                )
+                _tasks[key].append(task)
         print("Tasks successfully loaded from file JIRA")
         
     return _tasks

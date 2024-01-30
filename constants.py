@@ -18,6 +18,7 @@ DEBUG_MODE = False
 ICON_FILENAME = "icon.png"
 ICON_ON = "icon_timer_green.png"
 ICON_OFF = "icon_timer_black.png"
+ICON_ERROR = "icon_timer_red.png"
 
 
 TAGS = [

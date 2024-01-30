@@ -1,31 +1,27 @@
 import threading
 import time
-import sqlite3
-import os
 import sys
 import jira_helper
 
 import constants as const
 import utils
-from PyQt6.QtCore import Qt, QTimer, QTime
-from PyQt6.QtGui import QIcon, QAction, QPixmap
+from PyQt6.QtCore import QTimer, QTime
+from PyQt6.QtGui import QIcon, QAction, QFont
 from PyQt6.QtWidgets import (
     QApplication,
-    QWidget,
     QMainWindow,
     QSystemTrayIcon,
     QMenu,
     QPushButton,
     QLabel,
-    QLineEdit,
     QGridLayout,
-    QVBoxLayout,
     QHBoxLayout,
     QFormLayout,
     QDialog,
     QTextEdit,
     QCheckBox,
-    QTimeEdit
+    QTimeEdit,
+    QWidgetAction
 )
 
 
@@ -132,12 +128,12 @@ class TrayIconApp(QMainWindow):
         # Create actions
         reload_action = QAction("Reload", self)
         reload_action.triggered.connect(self.reload_action)
+        self.context_menu.addAction(reload_action)
 
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(QApplication.instance().quit)
-
-        self.context_menu.addAction(reload_action)
         self.context_menu.addAction(quit_action)
+
 
     def reload_action(self):
         # Reload action triggered
@@ -146,14 +142,26 @@ class TrayIconApp(QMainWindow):
         context_menu.clear()
         
         for task_source in const.TASK_SOURCES:
-        # for task_source in ["file"]:
             tasks = utils.load_options(task_source)
-            sorted_tasks = sorted(tasks, key=lambda t: t.issue_key)
-            for task in sorted_tasks:
-                action = CustomQAction(task.issue_key, task.title, self)
-                action.triggered.connect(self.generic_action_handler)
-                action.setCheckable(True)
-                context_menu.addAction(action)
+            for group in tasks.keys():
+                # Add sublabel to identify task status (Open, Waiting, In Review, ...)
+                label = QLabel(group)
+                label.setStyleSheet('color: gray;')
+                font = QFont()
+                font.setPointSize(10)                
+                label.setContentsMargins(5,0,0,0)
+                label.setFont(font)
+                label_action = QWidgetAction(self)
+                label_action.setDefaultWidget(label)
+                context_menu.addAction(label_action)
+                
+                # Sort tasks by issue_key per group/status
+                sorted_tasks = sorted(tasks[group], key=lambda t: t.issue_key)
+                for task in sorted_tasks:
+                    action = CustomQAction(task.issue_key, task.title, self)
+                    action.triggered.connect(self.generic_action_handler)
+                    action.setCheckable(True)
+                    context_menu.addAction(action)
             context_menu.addSeparator()
 
         # Add the default buttons
@@ -195,30 +203,26 @@ class TrayIconApp(QMainWindow):
 
     def log_time(self, jira_issue_key, duration):
         try:
-            if True:
-            # if utils.convert_duration(duration):  # More than 1 minute
-                print(f"Logging {duration} to task {jira_issue_key}")
-                
-                dialog = CommentDialog(self, jira_issue_key)
-                dialog.duration_edit.setTime(QTime.fromString(duration, "hh:mm"))
-                result = dialog.exec()
-                # Check the result
-                if result == 1:
-                    # User clicked OK
-                    comment = dialog.get_text()
-                    tags = dialog.get_tags()
-                    duration = dialog.duration_edit.time().toString("hh:mm")
-                    print(f"Entered Text: {comment}")
-                    print(f"Tags: {tags}")
-                    jira_helper.log_work_to_issue(jira_issue_key, duration, comment=comment, tags=", ".join(tags))
-                    # TODO: Notification on success
-                else:
-                    # User clicked Cancel or closed the dialog
-                    print("Dialog was canceled.")
-
+            print(f"Logging {duration} to task {jira_issue_key}")
+            
+            dialog = CommentDialog(self, jira_issue_key)
+            dialog.duration_edit.setTime(QTime.fromString(duration, "hh:mm"))
+            result = dialog.exec()
+            # Check the result
+            if result == 1:
+                # User clicked OK
+                comment = dialog.get_text()
+                tags = dialog.get_tags()
+                duration = dialog.duration_edit.time().toString("hh:mm")
+                print(f"Entered Text: {comment}")
+                print(f"Tags: {tags}")
+                jira_helper.log_work_to_issue(jira_issue_key, duration, comment=comment, tags=", ".join(tags))
+                # TODO: Notification on success
+            else:
+                # User clicked Cancel or closed the dialog
+                print("Dialog was canceled.")
         except Exception as e:
             # TODO: Notification on error
-            # rumps.notification(title="ERROR", subtitle="Couldn't log work", message=str(e))
             print(e)
 
     def start_timer(self, action):
