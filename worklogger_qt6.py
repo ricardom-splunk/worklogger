@@ -7,7 +7,7 @@ import jira_helper
 
 import constants as const
 import utils
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, QTime
 from PyQt6.QtGui import QIcon, QAction, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
@@ -24,31 +24,33 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QDialog,
     QTextEdit,
-    QCheckBox
+    QCheckBox,
+    QTimeEdit
 )
 
 
 class CommentDialog(QDialog):
     def __init__(self, parent, issue_key):
         super().__init__(parent)
-
         self.setWindowTitle("Add Comment")
+        layout = QFormLayout(self)
 
         self.label = QLabel(f"Logging work to {issue_key}")
-        self.comment = QTextEdit() 
-        
-        self.ok_button = QPushButton('Submit', self)
-        self.cancel_button = QPushButton('Cancel', self)
-        
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.ok_button)
-        button_layout.addWidget(self.cancel_button)
-        
-        layout = QFormLayout(self)
         layout.addRow(self.label)
-        layout.addRow(self.comment)
-        layout.addRow(button_layout)
 
+        self.comment = QTextEdit() 
+        layout.addRow(self.comment)
+        
+        self.duration_label = QLabel("Set duration:")
+        self.duration_edit = QTimeEdit()
+        self.duration_edit.setDisplayFormat("hh:mm")
+        duration_edit_layout = QHBoxLayout()
+        duration_edit_layout.addWidget(self.duration_label)
+        duration_edit_layout.addWidget(self.duration_edit)
+        layout.addRow(duration_edit_layout)
+        
+
+        # Add tags in alphabetical order, in 2 columns
         self.grid = QGridLayout()
         layout.addRow(self.grid)
         
@@ -63,6 +65,15 @@ class CommentDialog(QDialog):
                 self.grid.addWidget(checkbox, row_r, 1)
                 row_r += 1
                 
+        
+        # Add buttons at the bottom
+        self.ok_button = QPushButton('Submit', self)
+        self.cancel_button = QPushButton('Cancel', self)
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.ok_button)
+        button_layout.addWidget(self.cancel_button)
+        layout.addRow(button_layout)
+        
         # Connect signals to slots
         self.ok_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
@@ -72,6 +83,7 @@ class CommentDialog(QDialog):
         return self.comment.toPlainText()
 
     def get_tags(self):
+        """Get tags that were selected on the worklog submission window"""
         tags = []
         for row in range(self.grid.rowCount()):
             for col in range(self.grid.columnCount()):
@@ -183,17 +195,19 @@ class TrayIconApp(QMainWindow):
 
     def log_time(self, jira_issue_key, duration):
         try:
-            if utils.convert_duration(duration):  # More than 1 minute
+            if True:
+            # if utils.convert_duration(duration):  # More than 1 minute
                 print(f"Logging {duration} to task {jira_issue_key}")
                 
                 dialog = CommentDialog(self, jira_issue_key)
+                dialog.duration_edit.setTime(QTime.fromString(duration, "hh:mm"))
                 result = dialog.exec()
-                
                 # Check the result
                 if result == 1:
                     # User clicked OK
                     comment = dialog.get_text()
                     tags = dialog.get_tags()
+                    duration = dialog.duration_edit.time().toString("hh:mm")
                     print(f"Entered Text: {comment}")
                     print(f"Tags: {tags}")
                     jira_helper.log_work_to_issue(jira_issue_key, duration, comment=comment, tags=", ".join(tags))
