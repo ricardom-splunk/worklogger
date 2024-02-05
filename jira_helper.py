@@ -10,6 +10,7 @@ jira_url = os.environ.get("JIRA_API_URL")
 user_email = os.environ.get("JIRA_API_EMAIL")
 username = user_email.split("@")[0]
 api_token = os.environ.get("JIRA_API_TOKEN")
+account_id = os.environ.get("JIRA_ACCOUNT_ID")
 
 jira = JIRA(server=jira_url, basic_auth=(user_email, api_token))
 
@@ -19,7 +20,7 @@ def get_my_open_issues():
     Returns:
         _type_: _description_
     """
-    jql_query = f'assignee = {username} AND resolution = Unresolved'
+    jql_query = f'assignee = {account_id if account_id else username} AND resolution = Unresolved'
     res = jira.search_issues(jql_query)
 
     my_jiras = {}
