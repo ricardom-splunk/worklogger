@@ -77,9 +77,9 @@ def load_options(sources=[]):
     
     # TODO: Add a horizontal divider between file and JIRA tasks
     
-    else:
-        print("Loading tasks from JIRA{}...".format(' with watcher list' if "watcher" in sources else ''))
-        _items = jira_helper.get_my_open_issues(True if "watcher" in sources else False)  # Should return a list of dicts
+    if 'jira' in sources:
+        print("Loading tasks from JIRA...")
+        _items = jira_helper.get_my_open_issues()  # Should return a list of dicts
         for key in _items.keys():
             _tasks[key] = []
             for item in _items[key]:
@@ -90,6 +90,23 @@ def load_options(sources=[]):
                     summary=item['summary']
                 )
                 _tasks[key].append(task)
-        print("Tasks successfully loaded from file JIRA")
+        print("Tasks successfully loaded from JIRA")
+    
+    if 'watcher' in sources:
+        print("Loading tasks from JIRA as a watcher...")
+        source_name = "Watcher"
+        _tasks[source_name] = []
+        _items = jira_helper.get_my_open_issues(watcher=True)  # Should return a list of dicts
+        for key in _items.keys():
+            _tasks[key] = []
+            for item in _items[key]:
+                task = Task(
+                    title=f"{item['issue_key']} - {item['summary'][:30]}",
+                    issue_key=item['issue_key'],
+                    url=item['url'],
+                    summary=item['summary']
+                )
+                _tasks[source_name].append(task)
+        print("Tasks successfully loaded from JIRA as a watcher")
         
     return _tasks

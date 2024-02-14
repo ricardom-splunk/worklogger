@@ -8,7 +8,7 @@ LOG_TIME_DEST = {
 
 # Where to load tasks from:
 TASK_LIST_FILENAME = "options.csv"  # Only relevant if "file" in TASK_SOURCES
-TASK_SOURCES = ["jira with watcher"]  # Allowed options: "jira with watcher", "jira", "file"
+TASK_SOURCES = ["jira", "watcher"]  # Allowed options: "jira", "watcher", "file"
 
 TIME_UPDATE_INTERVAL = 10  # Interval to update the timer on the system tray, in seconds
 AUTO_RELOAD_INTERVAL = 3600  # Interval to reload menu items, seconds

@@ -21,7 +21,7 @@ def get_my_open_issues(watcher=False):
         _type_: _description_
     """
     if watcher:
-        jql_query = f'(assignee = {account_id if account_id else username} OR watcher = currentUser()) AND resolution = Unresolved'
+        jql_query = f'assignee != {account_id if account_id else username} AND watcher = currentUser() AND resolution = Unresolved'
     else:
         jql_query = f'assignee = {account_id if account_id else username} AND resolution = Unresolved'
 
