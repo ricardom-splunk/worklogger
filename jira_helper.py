@@ -14,13 +14,17 @@ account_id = os.environ.get("JIRA_ACCOUNT_ID")
 
 jira = JIRA(server=jira_url, basic_auth=(user_email, api_token))
 
-def get_my_open_issues():
+def get_my_open_issues(watcher=False):
     """Get Unresolved JIRA issues assigned to current user
 
     Returns:
         _type_: _description_
     """
-    jql_query = f'assignee = {account_id if account_id else username} AND resolution = Unresolved'
+    if watcher:
+        jql_query = f'(assignee = {account_id if account_id else username} OR watcher = currentUser()) AND resolution = Unresolved'
+    else:
+        jql_query = f'assignee = {account_id if account_id else username} AND resolution = Unresolved'
+
     res = jira.search_issues(jql_query)
 
     my_jiras = {}
