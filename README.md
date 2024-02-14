@@ -8,7 +8,6 @@ The following environment variables must be exported:
 - JIRA_API_URL
 - JIRA_API_EMAIL
 - JIRA_API_TOKEN
-- JIRA_ACCOUNT_ID
 ```
 
 A common strategy is to create a .env file where the variables and corresponding values are defined.
