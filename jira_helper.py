@@ -1,6 +1,7 @@
 import os
 import re
 from jira import JIRA
+from jira.resources import User
 from jira.exceptions import JIRAError
 
 import utils
@@ -10,9 +11,30 @@ jira_url = os.environ.get("JIRA_API_URL")
 user_email = os.environ.get("JIRA_API_EMAIL")
 username = user_email.split("@")[0]
 api_token = os.environ.get("JIRA_API_TOKEN")
-account_id = os.environ.get("JIRA_ACCOUNT_ID")
 
 jira = JIRA(server=jira_url, basic_auth=(user_email, api_token))
+
+def get_user_id():
+    params = {
+    'query': user_email,
+    'includeActive': True,
+    'includeInactive': False
+    }
+    list_search = jira._fetch_pages(
+        item_type=User,
+        items_key=None,
+        request_path='user/search',
+        params=params
+    )
+
+    try:
+        jira_user_id = list_search[0].accountId
+    except IndexError as inderr:
+        raise 'Search is empty: ' + inderr
+    except Exception as exc:
+        raise 'Error during searching for user ID: ' + exc
+
+    return jira_user_id
 
 def get_my_open_issues(watcher=False):
     """Get Unresolved JIRA issues assigned to current user
@@ -20,10 +42,11 @@ def get_my_open_issues(watcher=False):
     Returns:
         _type_: _description_
     """
+    account_id = get_user_id()
     if watcher:
-        jql_query = f'assignee != {account_id if account_id else username} AND watcher = currentUser() AND resolution = Unresolved'
+        jql_query = f'assignee != {account_id} AND watcher = currentUser() AND resolution = Unresolved'
     else:
-        jql_query = f'assignee = {account_id if account_id else username} AND resolution = Unresolved'
+        jql_query = f'assignee = {account_id} AND resolution = Unresolved'
 
     res = jira.search_issues(jql_query)
 
