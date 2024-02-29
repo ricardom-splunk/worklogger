@@ -98,7 +98,8 @@ def load_options(sources=[]):
         source_name = "Watcher"
         _items = jira_helper.get_my_open_issues(watcher=True)  # Should return a list of dicts
         for key in _items.keys():
-            _tasks[source_name] = []
+            if _tasks.get(source_name) is None:
+                _tasks[source_name] = []
             for item in _items[key]:
                 task = Task(
                     title=f"{item['issue_key']} - {item['summary'][:30]}",
