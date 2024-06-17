@@ -5,6 +5,7 @@ from jira.resources import User
 from jira.exceptions import JIRAError
 
 import utils
+
 from dotenv import load_dotenv
 
 load_dotenv()
