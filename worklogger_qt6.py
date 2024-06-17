@@ -110,10 +110,8 @@ class TrayIconApp(QMainWindow):
         self.context_menu = QMenu(self)
 
         # # Create system tray icon
-        if len(sys.argv) > 1 and sys.argv[1].lower()=="dark":
-            self.tray_icon = QSystemTrayIcon(QIcon(const.ICON_OFF_DARK_THEME), self)
-        else:
-            self.tray_icon = QSystemTrayIcon(QIcon(const.ICON_OFF), self)
+        default_tray_icon = self.load_default_tray_icon()
+        self.tray_icon = QSystemTrayIcon(QIcon(default_tray_icon), self)
         self.tray_icon.setContextMenu(self.context_menu)
         self.tray_icon.show()
 
@@ -126,6 +124,13 @@ class TrayIconApp(QMainWindow):
 
         self.active_action = None
         self.timer = None
+
+    def load_default_tray_icon(self):
+        if len(sys.argv) > 1 and sys.argv[1].lower()=="white":
+            icon = const.ICON_OFF_WHITE
+        else:
+            icon = const.ICON_OFF
+        return icon
 
     def add_default_items(self):
         # Create actions
@@ -140,10 +145,8 @@ class TrayIconApp(QMainWindow):
 
     def reload_action(self):
         # Reload action triggered
-        if len(sys.argv) > 1 and sys.argv[1].lower()=="dark":
-            self.tray_icon.setIcon(QIcon(const.ICON_OFF_DARK_THEME))
-        else:
-            self.tray_icon.setIcon(QIcon(const.ICON_OFF))
+        default_icon = self.load_default_tray_icon()
+        self.tray_icon.setIcon(QIcon(default_icon))
         context_menu = self.tray_icon.contextMenu()
         context_menu.clear()
         
@@ -248,10 +251,12 @@ class TrayIconApp(QMainWindow):
 
         self.log_time(self.active_action.issue_key, duration)
         
-        if len(sys.argv) > 1 and sys.argv[1].lower()=="dark":
-            self.tray_icon.setIcon(QIcon(const.ICON_OFF_DARK_THEME))
-        else:
-            self.tray_icon.setIcon(QIcon(const.ICON_OFF))
+        # if len(sys.argv) > 1 and sys.argv[1].lower()=="dark":
+        #     self.tray_icon.setIcon(QIcon(const.ICON_OFF_DARK_THEME))
+        # else:
+        #     self.tray_icon.setIcon(QIcon(const.ICON_OFF))
+        default_icon = self.load_default_tray_icon()
+        self.tray_icon.setIcon(QIcon(default_icon))
         self.active_action = None
         print(f"STOPPED Timer for item {action.text()}")
         
