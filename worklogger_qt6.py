@@ -126,6 +126,7 @@ class TrayIconApp(QMainWindow):
         self.timer = None
 
     def load_default_tray_icon(self):
+        """Returns path to the specific icon file based on passed arguments"""
         if len(sys.argv) > 1 and sys.argv[1].lower()=="white":
             icon = const.ICON_OFF_WHITE
         else:
