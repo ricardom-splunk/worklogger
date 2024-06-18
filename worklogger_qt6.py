@@ -251,11 +251,6 @@ class TrayIconApp(QMainWindow):
             self.timer = None  # This kills the running thread?
 
         self.log_time(self.active_action.issue_key, duration)
-        
-        # if len(sys.argv) > 1 and sys.argv[1].lower()=="dark":
-        #     self.tray_icon.setIcon(QIcon(const.ICON_OFF_DARK_THEME))
-        # else:
-        #     self.tray_icon.setIcon(QIcon(const.ICON_OFF))
         default_icon = self.load_default_tray_icon()
         self.tray_icon.setIcon(QIcon(default_icon))
         self.active_action = None
