@@ -6,6 +6,10 @@ from jira.exceptions import JIRAError
 
 import utils
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Set up your Jira Cloud connection
 jira_url = os.environ.get("JIRA_API_URL")
 user_email = os.environ.get("JIRA_API_EMAIL")
