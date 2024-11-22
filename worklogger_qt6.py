@@ -124,7 +124,7 @@ class TrayIconApp(QMainWindow):
 
         self.active_action = None
         self.timer = None
-    
+
     def load_default_tray_icon(self):
         """Returns path to the specific icon file based on passed arguments"""
         if len(sys.argv) > 1 and sys.argv[1].lower()=="white":
@@ -132,7 +132,7 @@ class TrayIconApp(QMainWindow):
         else:
             icon = const.ICON_OFF
         return icon
-    
+
     def add_default_items(self):
         # Create actions
         reload_action = QAction("Reload", self)
@@ -250,7 +250,7 @@ class TrayIconApp(QMainWindow):
             self.timer = None  # This kills the running thread?
 
         self.log_time(self.active_action.issue_key, duration)
-        
+
         default_icon = self.load_default_tray_icon()
         self.tray_icon.setIcon(QIcon(default_icon))
         self.active_action = None
