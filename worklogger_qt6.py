@@ -110,7 +110,8 @@ class TrayIconApp(QMainWindow):
         self.context_menu = QMenu(self)
 
         # # Create system tray icon
-        self.tray_icon = QSystemTrayIcon(QIcon(const.ICON_OFF), self)
+        default_tray_icon = self.load_default_tray_icon()
+        self.tray_icon = QSystemTrayIcon(QIcon(default_tray_icon), self)
         self.tray_icon.setContextMenu(self.context_menu)
         self.tray_icon.show()
 
@@ -123,7 +124,15 @@ class TrayIconApp(QMainWindow):
 
         self.active_action = None
         self.timer = None
-
+    
+    def load_default_tray_icon(self):
+        """Returns path to the specific icon file based on passed arguments"""
+        if len(sys.argv) > 1 and sys.argv[1].lower()=="white":
+            icon = const.ICON_OFF_WHITE
+        else:
+            icon = const.ICON_OFF
+        return icon
+    
     def add_default_items(self):
         # Create actions
         reload_action = QAction("Reload", self)
@@ -137,7 +146,8 @@ class TrayIconApp(QMainWindow):
 
     def reload_action(self):
         # Reload action triggered
-        self.tray_icon.setIcon(QIcon(const.ICON_OFF))
+        default_icon = self.load_default_tray_icon()
+        self.tray_icon.setIcon(QIcon(default_icon))
         context_menu = self.tray_icon.contextMenu()
         context_menu.clear()
         for task_source in const.TASK_SOURCES:
@@ -241,7 +251,8 @@ class TrayIconApp(QMainWindow):
 
         self.log_time(self.active_action.issue_key, duration)
         
-        self.tray_icon.setIcon(QIcon(const.ICON_OFF))
+        default_icon = self.load_default_tray_icon()
+        self.tray_icon.setIcon(QIcon(default_icon))
         self.active_action = None
         print(f"STOPPED Timer for item {action.text()}")
         
