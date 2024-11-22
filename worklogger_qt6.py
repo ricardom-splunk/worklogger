@@ -250,7 +250,6 @@ class TrayIconApp(QMainWindow):
             self.timer = None  # This kills the running thread?
 
         self.log_time(self.active_action.issue_key, duration)
-
         default_icon = self.load_default_tray_icon()
         self.tray_icon.setIcon(QIcon(default_icon))
         self.active_action = None
