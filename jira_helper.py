@@ -6,10 +6,6 @@ from jira.exceptions import JIRAError
 
 import utils
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 # Set up your Jira Cloud connection
 jira_url = os.environ.get("JIRA_API_URL")
 user_email = os.environ.get("JIRA_API_EMAIL")
@@ -40,14 +36,14 @@ def get_user_id():
 
     return jira_user_id
 
-def get_my_open_issues(watcher=False):
+def get_my_open_issues(watching=False):
     """Get Unresolved JIRA issues assigned to current user
 
     Returns:
         _type_: _description_
     """
     account_id = get_user_id()
-    if watcher:
+    if watching:
         jql_query = f'assignee != {account_id} AND watcher = currentUser() AND resolution = Unresolved'
     else:
         jql_query = f'assignee = {account_id} AND resolution = Unresolved'

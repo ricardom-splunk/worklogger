@@ -150,7 +150,6 @@ class TrayIconApp(QMainWindow):
         self.tray_icon.setIcon(QIcon(default_icon))
         context_menu = self.tray_icon.contextMenu()
         context_menu.clear()
-        
         for task_source in const.TASK_SOURCES:
             tasks = utils.load_options(task_source)
             for group in tasks.keys():

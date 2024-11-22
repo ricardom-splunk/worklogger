@@ -53,6 +53,7 @@ def load_options(sources=[]):
     _tasks = {}
     if "file" in sources:
         source_name = "Local"
+        _tasks[source_name] = []
         print("Loading tasks from file...")
         try:
             with open(const.TASK_LIST_FILENAME, "r") as file:
@@ -65,8 +66,6 @@ def load_options(sources=[]):
                             url=url,
                             summary=summary
                         )
-                        if not _tasks.get(source_name):
-                            _tasks[source_name] = []
                         _tasks[source_name].append(task)
                     else:
                         print(f"{line} not added. It's a # comment!")
@@ -93,13 +92,12 @@ def load_options(sources=[]):
                 _tasks[key].append(task)
         print("Tasks successfully loaded from JIRA")
     
-    if 'watcher' in sources:
-        print("Loading tasks from JIRA as a watcher...")
-        source_name = "Watcher"
-        _items = jira_helper.get_my_open_issues(watcher=True)  # Should return a list of dicts
+    if 'watching' in sources:
+        print("Loading watched tasks from JIRA...")
+        source_name = "Watching"
+        _tasks[source_name] = []
+        _items = jira_helper.get_my_open_issues(watching=True)  # Should return a list of dicts
         for key in _items.keys():
-            if _tasks.get(source_name) is None:
-                _tasks[source_name] = []
             for item in _items[key]:
                 task = Task(
                     title=f"{item['issue_key']} - {item['summary'][:30]}",
@@ -111,3 +109,4 @@ def load_options(sources=[]):
         print("Tasks successfully loaded from JIRA as a watcher")
         
     return _tasks
+
