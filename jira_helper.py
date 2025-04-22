@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from jira import JIRA
@@ -12,7 +13,55 @@ user_email = os.environ.get("JIRA_API_EMAIL")
 username = user_email.split("@")[0]
 api_token = os.environ.get("JIRA_API_TOKEN")
 
-jira = JIRA(server=jira_url, basic_auth=(user_email, api_token))
+# Override the original JIRA class to do a little patching and add support for the notifyUsers flag for the add_worklog function
+class MyJIRA(JIRA):
+    def add_worklog(
+        self, issue, timeSpent=None, timeSpentSeconds=None, adjustEstimate=None, newEstimate=None, reduceBy=None, comment=None, started=None, user=None, visibility=None, notify=False):
+
+        params = {}
+        if adjustEstimate is not None:
+            params["adjustEstimate"] = adjustEstimate
+        if newEstimate is not None:
+            params["newEstimate"] = newEstimate
+        if reduceBy is not None:
+            params["reduceBy"] = reduceBy
+
+        data: dict[str, Any] = {}
+        if timeSpent is not None:
+            data["timeSpent"] = timeSpent
+        if timeSpentSeconds is not None:
+            data["timeSpentSeconds"] = timeSpentSeconds
+        if comment is not None:
+            data["comment"] = comment
+        elif user:
+            # we log user inside comment as it doesn't always work
+            data["comment"] = user
+
+        if visibility is not None:
+            data["visibility"] = visibility
+        if started is not None:
+            # based on REST Browser it needs: "2014-06-03T08:21:01.273+0000"
+            if started.tzinfo is None:
+                data["started"] = started.strftime("%Y-%m-%dT%H:%M:%S.000+0000")
+            else:
+                data["started"] = started.strftime("%Y-%m-%dT%H:%M:%S.000%z")
+        if user is not None:
+            data["author"] = {
+                "name": user,
+                "self": self.JIRA_BASE_URL + "/rest/api/latest/user?username=" + user,
+                "displayName": user,
+                "active": False,
+            }
+            data["updateAuthor"] = data["author"]
+        # report bug to Atlassian: author and updateAuthor parameters are ignored.
+
+        params["notifyUsers"] = notify
+        url = self._get_url(f"issue/{issue}/worklog")
+        r = self._session.post(url, params=params, data=json.dumps(data))
+
+        return Worklog(self._options, self._session, json_loads(r))
+
+jira = MyJIRA(server=jira_url, basic_auth=(user_email, api_token))
 
 def get_user_id():
     params = {
