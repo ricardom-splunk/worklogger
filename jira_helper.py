@@ -68,7 +68,7 @@ def log_work_to_issue(issue_key, duration, comment="", tags=""):
         comment_auto = f"{{panel:bgColor=#deebff}}\nAutomatically Logged\n{{panel}}\n{comment}\n\n----\n{{color:#97a0af}}Tags{{color}}: {tags}\n"
         timeSpent = utils.convert_duration(duration)
         try:
-            res = jira.add_worklog(issue=issue_key, timeSpent=timeSpent, comment=comment_auto)
+            res = jira.add_worklog(issue=issue_key, timeSpent=timeSpent, comment=comment_auto, notify=False)
             print(f"Worklog added for issue {issue_key} - duration: {duration}")
         except JIRAError as e:
             # probably the time is less than 1 minute. show notification saying it wasn't updated because of that        
