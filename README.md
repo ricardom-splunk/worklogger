@@ -20,6 +20,9 @@ Then:
 ```source .env```
 
 At this point, the tracker executes from the Terminal - for lack of easy alternatives at the point of creation :)
+You can background it using:
+```nohup python /path/to/worklogger.py &```
+or my recommended way, by using **tmux** -> https://github.com/tmux/tmux/wiki
 
 The recommended way is to execute it inside a python 3.9 virtual environment:
 ```
