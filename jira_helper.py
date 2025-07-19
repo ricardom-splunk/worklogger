@@ -4,6 +4,7 @@ import re
 from jira import JIRA
 from jira.resources import User
 from jira.exceptions import JIRAError
+from jira.resources import Worklog
 
 import utils
 
@@ -59,7 +60,7 @@ class MyJIRA(JIRA):
         url = self._get_url(f"issue/{issue}/worklog")
         r = self._session.post(url, params=params, data=json.dumps(data))
 
-        return Worklog(self._options, self._session, json_loads(r))
+        return Worklog(self._options, self._session, json.loads(r.text))
 
 jira = MyJIRA(server=jira_url, basic_auth=(user_email, api_token))
 
