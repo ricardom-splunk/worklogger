@@ -136,6 +136,5 @@ def validate_jira_issue_key(issue_key):
     Args:
         issue_key (bool): JIRA issue key
     """
-    if re.search("^FDSE-\d+$", issue_key) or re.search("^FDSEDEV-\d+$", issue_key):
-        return True
-    return False
+    return (re.search(r"^FDSE-\d+$", issue_key) or re.search(r"^FDSEDEV-\d+$", issue_key))
+    
