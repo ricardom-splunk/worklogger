@@ -2,7 +2,7 @@
 WorkLogger tool to track time spent working on JIRA tasks and log the work
 
 
-**NOTE: Requires Python 3.9 - there's some incompatibility between the used libraries and some newer python versions.**
+**NOTE: Requires at least Python 3.10 - there's some incompatibility between the used libraries and some newer python versions.**
 
 
 ## Instructions:
@@ -24,7 +24,7 @@ You can background it using:
 ```nohup python /path/to/worklogger.py &```
 or my recommended way, by using **tmux** -> https://github.com/tmux/tmux/wiki
 
-The recommended way is to execute it inside a python 3.9 virtual environment:
+The recommended way is to execute it inside a python 3.10+ virtual environment:
 ```
 python -m venv .venv
 source .venv/bin/activate
